@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 
-const API = import.meta.env.VITE_API_URL || 'https://loutfihi-mounir-washgo-backend.hf.space/api/v1';
+const API = import.meta.env.VITE_API_URL || 'http://192.168.1.16:3000/api/v1';
 
 type VerificationStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 
@@ -105,13 +105,30 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
     setTimeout(() => setToast(null), 3000);
   };
 
+  const washersCache = useRef<Map<string, { data: Washer[]; ts: number }>>(new Map());
+  const CACHE_TTL = 30000;
+
   const fetchWashers = async () => {
+    const cacheKey = filter;
+    const cached = washersCache.current.get(cacheKey);
+    if (cached && Date.now() - cached.ts < CACHE_TTL) {
+      setWashers(cached.data);
+      return;
+    }
+
     setLoading(true);
     try {
       const url = filter === 'ALL'
         ? '/admin/washers'
         : `/admin/washers?status=${filter}`;
       const res = await api.get(url);
+      washersCache.current.set(cacheKey, { data: res.data, ts: Date.now() });
+      if (washersCache.current.size > 20) {
+        const now = Date.now();
+        for (const [key, entry] of washersCache.current) {
+          if (now - entry.ts > CACHE_TTL * 3) washersCache.current.delete(key);
+        }
+      }
       setWashers(res.data);
     } catch {
       showToast('Erreur chargement', 'error');
