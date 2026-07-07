@@ -26,11 +26,27 @@ interface CarouselSlide {
   imageUrl: string;
   title: string;
   subtitle: string | null;
+  textPosition: string;
+  imageFit: string;
   order: number;
   active: boolean;
   createdAt: string;
   updatedAt: string;
 }
+
+const TEXT_POSITIONS = [
+  { value: 'BOTTOM', label: 'Bas', icon: '⬇' },
+  { value: 'TOP', label: 'Haut', icon: '⬆' },
+  { value: 'CENTER', label: 'Centre', icon: '⏺' },
+  { value: 'LEFT', label: 'Gauche', icon: '⬅' },
+  { value: 'RIGHT', label: 'Droite', icon: '➡' },
+];
+
+const IMAGE_FITS = [
+  { value: 'COVER', label: 'Remplir' },
+  { value: 'CONTAIN', label: 'Adapter' },
+  { value: 'CENTER', label: 'Centrer' },
+];
 
 const api = axios.create({ baseURL: API });
 
@@ -108,6 +124,8 @@ function CarouselManager({ showToast }: { showToast: (msg: string, type?: 'succe
   const [editing, setEditing] = useState<CarouselSlide | null>(null);
   const [formTitle, setFormTitle] = useState('');
   const [formSubtitle, setFormSubtitle] = useState('');
+  const [formTextPosition, setFormTextPosition] = useState('BOTTOM');
+  const [formImageFit, setFormImageFit] = useState('COVER');
   const [formOrder, setFormOrder] = useState(0);
   const [formActive, setFormActive] = useState(true);
   const [formFile, setFormFile] = useState<File | null>(null);
@@ -133,6 +151,8 @@ function CarouselManager({ showToast }: { showToast: (msg: string, type?: 'succe
     setEditing(null);
     setFormTitle('');
     setFormSubtitle('');
+    setFormTextPosition('BOTTOM');
+    setFormImageFit('COVER');
     setFormOrder(slides.length);
     setFormActive(true);
     setFormFile(null);
@@ -144,6 +164,8 @@ function CarouselManager({ showToast }: { showToast: (msg: string, type?: 'succe
     setEditing(s);
     setFormTitle(s.title);
     setFormSubtitle(s.subtitle ?? '');
+    setFormTextPosition(s.textPosition || 'BOTTOM');
+    setFormImageFit(s.imageFit || 'COVER');
     setFormOrder(s.order);
     setFormActive(s.active);
     setFormFile(null);
@@ -172,6 +194,8 @@ function CarouselManager({ showToast }: { showToast: (msg: string, type?: 'succe
       const fd = new FormData();
       fd.append('title', formTitle);
       fd.append('subtitle', formSubtitle);
+      fd.append('textPosition', formTextPosition);
+      fd.append('imageFit', formImageFit);
       fd.append('order', String(formOrder));
       fd.append('active', String(formActive));
       if (formFile) fd.append('image', formFile);
@@ -271,10 +295,17 @@ function CarouselManager({ showToast }: { showToast: (msg: string, type?: 'succe
                   <img
                     src={s.imageUrl}
                     alt={s.title}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                    style={{
+                      width: '100%', height: '100%', display: 'block',
+                      objectFit: s.imageFit === 'CONTAIN' ? 'contain' : s.imageFit === 'CENTER' ? 'none' : 'cover',
+                      background: '#e0e0e0',
+                    }}
                   />
                   <div style={{
-                    position: 'absolute', bottom: 0, left: 0, right: 0,
+                    position: 'absolute',
+                    ...getTextPositionStyle(s.textPosition || 'BOTTOM'),
+                    left: !s.textPosition || s.textPosition === 'BOTTOM' || s.textPosition === 'TOP' ? 0 : undefined,
+                    right: !s.textPosition || s.textPosition === 'BOTTOM' || s.textPosition === 'TOP' ? 0 : undefined,
                     background: 'linear-gradient(transparent, rgba(0,0,0,0.6))',
                     padding: '24px 16px 12px',
                   }}>
@@ -341,13 +372,30 @@ function CarouselManager({ showToast }: { showToast: (msg: string, type?: 'succe
               <div style={{
                 width: '100%', aspectRatio: '16/9', borderRadius: 10,
                 overflow: 'hidden', marginBottom: 16, backgroundColor: '#F4F5F7',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                position: 'relative',
               }}>
                 {formPreview ? (
-                  <img src={formPreview} alt="Aperçu" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={formPreview} alt="Aperçu" style={{
+                    width: '100%', height: '100%',
+                    objectFit: formImageFit === 'CONTAIN' ? 'contain' : formImageFit === 'CENTER' ? 'none' : 'cover',
+                    background: '#e0e0e0',
+                  }} />
                 ) : (
-                  <span style={{ color: '#ccc', fontSize: 14 }}>Aperçu de l'image</span>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                    <span style={{ color: '#ccc', fontSize: 14 }}>Aperçu de l'image</span>
+                  </div>
                 )}
+                <div style={{
+                  position: 'absolute',
+                  ...getTextPositionStyle(formTextPosition),
+                  left: formTextPosition === 'LEFT' || formTextPosition === 'CENTER' ? 0 : undefined,
+                  right: formTextPosition === 'RIGHT' || formTextPosition === 'CENTER' ? 0 : undefined,
+                  padding: '48px 16px 12px',
+                  background: 'linear-gradient(transparent, rgba(0,0,0,0.6))',
+                }}>
+                  {formTitle && <div style={{ color: '#fff', fontWeight: 700, fontSize: 15 }}>{formTitle}</div>}
+                  {formSubtitle && <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: 12, marginTop: 2 }}>{formSubtitle}</div>}
+                </div>
               </div>
 
               <label style={{ fontSize: 12, fontWeight: 600, color: '#333', marginBottom: 4, display: 'block' }}>Image</label>
@@ -374,6 +422,44 @@ function CarouselManager({ showToast }: { showToast: (msg: string, type?: 'succe
                 value={formSubtitle}
                 onChange={(e) => setFormSubtitle(e.target.value)}
               />
+
+              <label style={{ fontSize: 12, fontWeight: 600, color: '#333', marginBottom: 6, display: 'block' }}>Position du texte</label>
+              <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
+                {TEXT_POSITIONS.map((p) => (
+                  <button
+                    key={p.value}
+                    onClick={() => setFormTextPosition(p.value)}
+                    style={{
+                      flex: 1, minWidth: 52, padding: '8px 4px', borderRadius: 8, border: 'none',
+                      cursor: 'pointer', fontSize: 11, fontWeight: 600,
+                      backgroundColor: formTextPosition === p.value ? '#0066FF' : '#F0F0F0',
+                      color: formTextPosition === p.value ? '#fff' : '#333',
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+                    }}
+                  >
+                    <span>{p.icon}</span>
+                    <span>{p.label}</span>
+                  </button>
+                ))}
+              </div>
+
+              <label style={{ fontSize: 12, fontWeight: 600, color: '#333', marginBottom: 6, display: 'block' }}>Ajustement image</label>
+              <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+                {IMAGE_FITS.map((f) => (
+                  <button
+                    key={f.value}
+                    onClick={() => setFormImageFit(f.value)}
+                    style={{
+                      flex: 1, padding: '8px 12px', borderRadius: 8, border: 'none',
+                      cursor: 'pointer', fontSize: 12, fontWeight: 600,
+                      backgroundColor: formImageFit === f.value ? '#0066FF' : '#F0F0F0',
+                      color: formImageFit === f.value ? '#fff' : '#333',
+                    }}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
 
               <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                 <div style={{ flex: 1 }}>
@@ -438,6 +524,16 @@ function CarouselManager({ showToast }: { showToast: (msg: string, type?: 'succe
       )}
     </div>
   );
+}
+
+function getTextPositionStyle(pos: string): React.CSSProperties {
+  switch (pos) {
+    case 'TOP': return { top: 0, left: 0, right: 0 };
+    case 'LEFT': return { top: 0, left: 0, bottom: 0, width: '50%' };
+    case 'RIGHT': return { top: 0, right: 0, bottom: 0, width: '50%' };
+    case 'CENTER': return { top: '50%', left: 0, right: 0, transform: 'translateY(-50%)' };
+    default: return { bottom: 0, left: 0, right: 0 };
+  }
 }
 
 // ─── Dashboard ───────────────────────────────────────
