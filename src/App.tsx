@@ -245,52 +245,77 @@ function CarouselManager({ showToast }: { showToast: (msg: string, type?: 'succe
 
   return (
     <div>
-      <div style={{ ...styles.filters, justifyContent: 'space-between' }}>
+      <div style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        padding: '20px 24px 0',
+      }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ fontWeight: 700, fontSize: 18, color: '#333' }}>
+          <span style={{ fontWeight: 700, fontSize: 20, color: '#111' }}>
             Carousel
           </span>
           <span style={{
-            backgroundColor: '#0066FF', color: '#fff', borderRadius: 12,
-            padding: '2px 10px', fontSize: 12, fontWeight: 600,
+            backgroundColor: '#0066FF', color: '#fff', borderRadius: 10,
+            padding: '2px 10px', fontSize: 13, fontWeight: 700,
           }}>
             {slides.length}
           </span>
         </div>
-        <button style={{ ...styles.btn, ...styles.btnPrimary, flex: 'none', width: 'auto', padding: '10px 24px' }} onClick={openAdd}>
-          + Nouvelle slide
+        <button
+          onClick={openAdd}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            padding: '10px 20px', borderRadius: 10, border: 'none',
+            backgroundColor: '#0066FF', color: '#fff',
+            fontWeight: 600, fontSize: 14, cursor: 'pointer',
+            boxShadow: '0 2px 8px rgba(0,102,255,0.25)',
+          }}
+        >
+          <span style={{ fontSize: 18, lineHeight: 1 }}>+</span>
+          Nouvelle slide
         </button>
       </div>
 
-      <div style={styles.content}>
+      <div style={{ padding: '16px 24px 24px' }}>
         {loading ? (
-          <div style={styles.centered}>Chargement...</div>
+          <div style={{ textAlign: 'center', padding: 60, color: '#999' }}>Chargement...</div>
         ) : slides.length === 0 ? (
-          <div style={{ ...styles.centered, padding: 80 }}>
-            <div style={{
-              fontSize: 64, marginBottom: 16, opacity: 0.3,
-            }}>📷</div>
-            <p style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>
+          <div style={{ textAlign: 'center', padding: '80px 20px' }}>
+            <div style={{ fontSize: 72, marginBottom: 16, opacity: 0.2 }}>📷</div>
+            <p style={{ fontSize: 17, fontWeight: 600, color: '#333', marginBottom: 6 }}>
               Aucune slide pour le moment
             </p>
-            <p style={{ fontSize: 13, color: '#999', marginBottom: 24 }}>
-              Ajoutez votre première slide pour le carousel de l'application
+            <p style={{ fontSize: 14, color: '#999', marginBottom: 24 }}>
+              Créez votre première slide pour le carousel de l'application mobile
             </p>
             <button
-              style={{ ...styles.btn, ...styles.btnPrimary, flex: 'none', width: 'auto', padding: '12px 32px' }}
               onClick={openAdd}
+              style={{
+                padding: '12px 32px', borderRadius: 10, border: 'none',
+                backgroundColor: '#0066FF', color: '#fff',
+                fontWeight: 600, fontSize: 14, cursor: 'pointer',
+              }}
             >
-              + Ajouter une slide
+              + Créer une slide
             </button>
           </div>
         ) : (
-          <div style={styles.grid}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+            gap: 20,
+          }}>
             {slides.map((s) => (
-              <div key={s.id} style={{
-                ...styles.card,
-                opacity: s.active ? 1 : 0.55,
-                display: 'flex', flexDirection: 'column',
-              }}>
+              <div
+                key={s.id}
+                style={{
+                  backgroundColor: '#fff', borderRadius: 16, overflow: 'hidden',
+                  border: '1px solid #EEE',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                  opacity: s.active ? 1 : 0.6,
+                  transition: 'opacity 0.2s',
+                }}
+              >
+                {/* Preview card (mobile-like) */}
                 <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', overflow: 'hidden' }}>
                   <img
                     src={s.imageUrl}
@@ -301,45 +326,77 @@ function CarouselManager({ showToast }: { showToast: (msg: string, type?: 'succe
                       background: '#e0e0e0',
                     }}
                   />
+                  {/* Dark gradient overlay */}
+                  <div style={{
+                    position: 'absolute', inset: 0,
+                    background: 'linear-gradient(transparent 40%, rgba(0,0,0,0.7))',
+                  }} />
+                  {/* Text */}
                   <div style={{
                     position: 'absolute',
                     ...getTextPositionStyle(s.textPosition || 'BOTTOM'),
-                    left: !s.textPosition || s.textPosition === 'BOTTOM' || s.textPosition === 'TOP' ? 0 : undefined,
-                    right: !s.textPosition || s.textPosition === 'BOTTOM' || s.textPosition === 'TOP' ? 0 : undefined,
-                    background: 'linear-gradient(transparent, rgba(0,0,0,0.6))',
-                    padding: '24px 16px 12px',
+                    padding: '24px 18px 16px',
                   }}>
-                    <div style={{ color: '#fff', fontWeight: 700, fontSize: 15 }}>
+                    <div style={{ color: '#fff', fontWeight: 700, fontSize: 18, textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
                       {s.title}
                     </div>
                     {s.subtitle && (
-                      <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: 12, marginTop: 2 }}>
+                      <div style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13, marginTop: 4, textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}>
                         {s.subtitle}
                       </div>
                     )}
                   </div>
-                </div>
-                <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ fontSize: 12, color: '#999' }}>Ordre {s.order}</span>
-                    <button
-                      onClick={() => toggleActive(s)}
-                      style={{
-                        padding: '4px 10px', borderRadius: 12, border: 'none',
-                        fontSize: 11, fontWeight: 600, cursor: 'pointer',
-                        backgroundColor: s.active ? '#E8F5E9' : '#FFEBEE',
-                        color: s.active ? '#2E7D32' : '#C62828',
-                      }}
-                    >
-                      {s.active ? 'Actif' : 'Inactif'}
-                    </button>
+                  {/* Order badge */}
+                  <div style={{
+                    position: 'absolute', top: 10, left: 10,
+                    backgroundColor: 'rgba(0,0,0,0.5)', color: '#fff',
+                    borderRadius: 8, padding: '4px 10px',
+                    fontSize: 11, fontWeight: 700, backdropFilter: 'blur(4px)',
+                  }}>
+                    #{s.order}
                   </div>
-                  <div style={{ display: 'flex', gap: 4 }}>
+                  {/* Image fit badge */}
+                  <div style={{
+                    position: 'absolute', top: 10, right: 10,
+                    backgroundColor: 'rgba(0,0,0,0.5)', color: '#fff',
+                    borderRadius: 8, padding: '4px 8px',
+                    fontSize: 10, fontWeight: 600, backdropFilter: 'blur(4px)',
+                  }}>
+                    {s.imageFit || 'COVER'}
+                  </div>
+                </div>
+
+                {/* Controls */}
+                <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{
+                      display: 'flex', alignItems: 'center', gap: 5,
+                      padding: '4px 10px', borderRadius: 20,
+                      backgroundColor: s.active ? '#E8F5E9' : '#FFF3E0',
+                      cursor: 'pointer',
+                    }} onClick={() => toggleActive(s)}>
+                      <div style={{
+                        width: 8, height: 8, borderRadius: 4,
+                        backgroundColor: s.active ? '#2E7D32' : '#E65100',
+                      }} />
+                      <span style={{
+                        fontSize: 11, fontWeight: 700,
+                        color: s.active ? '#2E7D32' : '#E65100',
+                      }}>
+                        {s.active ? 'Actif' : 'Inactif'}
+                      </span>
+                    </div>
+                    <span style={{ fontSize: 11, color: '#aaa' }}>
+                      {s.textPosition || 'BOTTOM'}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', gap: 6 }}>
                     <button
                       onClick={() => openEdit(s)}
                       style={{
-                        padding: '6px 12px', borderRadius: 8, border: '1px solid #E0E0E0',
-                        background: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: '#333',
+                        padding: '7px 14px', borderRadius: 8, border: '1px solid #E0E0E0',
+                        background: '#fff', cursor: 'pointer',
+                        fontSize: 12, fontWeight: 600, color: '#333',
                       }}
                     >
                       Modifier
@@ -347,8 +404,9 @@ function CarouselManager({ showToast }: { showToast: (msg: string, type?: 'succe
                     <button
                       onClick={() => setDeleteId(s.id)}
                       style={{
-                        padding: '6px 12px', borderRadius: 8, border: 'none',
-                        background: '#C62828', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: '#fff',
+                        padding: '7px 14px', borderRadius: 8, border: 'none',
+                        background: '#C62828', cursor: 'pointer',
+                        fontSize: 12, fontWeight: 600, color: '#fff',
                       }}
                     >
                       Supprimer
@@ -363,137 +421,221 @@ function CarouselManager({ showToast }: { showToast: (msg: string, type?: 'succe
 
       {showForm && (
         <div style={styles.overlay}>
-          <div style={{ ...styles.modal, maxWidth: 520 }}>
+          <div style={{ ...styles.modal, maxWidth: 600 }}>
             <div style={styles.modalHeader}>
               <h2 style={styles.modalTitle}>{editing ? 'Modifier la slide' : 'Nouvelle slide'}</h2>
               <button style={styles.closeBtn} onClick={() => setShowForm(false)}>✕</button>
             </div>
-            <div style={styles.modalBody}>
+            <div style={{ padding: 24 }}>
+              {/* Mobile preview */}
               <div style={{
-                width: '100%', aspectRatio: '16/9', borderRadius: 10,
-                overflow: 'hidden', marginBottom: 16, backgroundColor: '#F4F5F7',
-                position: 'relative',
+                width: '100%', borderRadius: 12, overflow: 'hidden',
+                marginBottom: 20, backgroundColor: '#F4F5F7',
+                position: 'relative', aspectRatio: '16/9',
+                border: '1px solid #E0E0E0',
               }}>
                 {formPreview ? (
                   <img src={formPreview} alt="Aperçu" style={{
                     width: '100%', height: '100%',
                     objectFit: formImageFit === 'CONTAIN' ? 'contain' : formImageFit === 'CENTER' ? 'none' : 'cover',
-                    background: '#e0e0e0',
+                    background: '#d0d0d0',
                   }} />
                 ) : (
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                    <span style={{ color: '#ccc', fontSize: 14 }}>Aperçu de l'image</span>
+                    <span style={{ color: '#bbb', fontSize: 14 }}>Aperçu de l'image</span>
                   </div>
                 )}
                 <div style={{
+                  position: 'absolute', inset: 0,
+                  background: 'linear-gradient(transparent 40%, rgba(0,0,0,0.7))',
+                }} />
+                <div style={{
                   position: 'absolute',
                   ...getTextPositionStyle(formTextPosition),
-                  left: formTextPosition === 'LEFT' || formTextPosition === 'CENTER' ? 0 : undefined,
-                  right: formTextPosition === 'RIGHT' || formTextPosition === 'CENTER' ? 0 : undefined,
-                  padding: '48px 16px 12px',
-                  background: 'linear-gradient(transparent, rgba(0,0,0,0.6))',
+                  padding: '24px 18px 16px',
                 }}>
-                  {formTitle && <div style={{ color: '#fff', fontWeight: 700, fontSize: 15 }}>{formTitle}</div>}
-                  {formSubtitle && <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: 12, marginTop: 2 }}>{formSubtitle}</div>}
+                  {formTitle && <div style={{ color: '#fff', fontWeight: 700, fontSize: 18, textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>{formTitle}</div>}
+                  {formSubtitle && <div style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13, marginTop: 4, textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}>{formSubtitle}</div>}
+                </div>
+                {/* Layer labels */}
+                <div style={{ position: 'absolute', bottom: 8, right: 8, display: 'flex', gap: 4 }}>
+                  <span style={{ fontSize: 9, backgroundColor: 'rgba(0,0,0,0.5)', color: '#aaa', padding: '2px 6px', borderRadius: 4 }}>image</span>
+                  <span style={{ fontSize: 9, backgroundColor: 'rgba(0,0,0,0.5)', color: '#aaa', padding: '2px 6px', borderRadius: 4 }}>overlay</span>
+                  <span style={{ fontSize: 9, backgroundColor: 'rgba(0,0,0,0.5)', color: '#fff', padding: '2px 6px', borderRadius: 4 }}>texte</span>
                 </div>
               </div>
 
-              <label style={{ fontSize: 12, fontWeight: 600, color: '#333', marginBottom: 4, display: 'block' }}>Image</label>
-              <input
-                type="file"
-                accept="image/*"
-                style={{ ...styles.input, padding: 10, fontSize: 14 }}
-                onChange={handleFileChange}
-              />
-              {editing && !formFile && <p style={{ fontSize: 12, color: '#999', marginTop: -8, marginBottom: 12 }}>Laissez vide pour conserver l'image actuelle</p>}
-
-              <label style={{ fontSize: 12, fontWeight: 600, color: '#333', marginBottom: 4, display: 'block' }}>Titre</label>
-              <input
-                style={styles.input}
-                placeholder="Titre de la slide"
-                value={formTitle}
-                onChange={(e) => setFormTitle(e.target.value)}
-              />
-
-              <label style={{ fontSize: 12, fontWeight: 600, color: '#333', marginBottom: 4, display: 'block' }}>Sous-titre</label>
-              <input
-                style={styles.input}
-                placeholder="Sous-titre (optionnel)"
-                value={formSubtitle}
-                onChange={(e) => setFormSubtitle(e.target.value)}
-              />
-
-              <label style={{ fontSize: 12, fontWeight: 600, color: '#333', marginBottom: 6, display: 'block' }}>Position du texte</label>
-              <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
-                {TEXT_POSITIONS.map((p) => (
-                  <button
-                    key={p.value}
-                    onClick={() => setFormTextPosition(p.value)}
-                    style={{
-                      flex: 1, minWidth: 52, padding: '8px 4px', borderRadius: 8, border: 'none',
-                      cursor: 'pointer', fontSize: 11, fontWeight: 600,
-                      backgroundColor: formTextPosition === p.value ? '#0066FF' : '#F0F0F0',
-                      color: formTextPosition === p.value ? '#fff' : '#333',
-                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
-                    }}
-                  >
-                    <span>{p.icon}</span>
-                    <span>{p.label}</span>
-                  </button>
-                ))}
+              {/* Image upload */}
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ fontSize: 12, fontWeight: 700, color: '#444', marginBottom: 6, display: 'block' }}>
+                  Image
+                </label>
+                <div style={{
+                  border: '2px dashed #D0D0D0', borderRadius: 10, padding: 12,
+                  backgroundColor: '#FAFAFA', cursor: 'pointer',
+                }}
+                  onClick={() => document.getElementById('carousel-image-input')?.click()}
+                >
+                  <input
+                    id="carousel-image-input"
+                    type="file" accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={handleFileChange}
+                  />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ fontSize: 20 }}>📁</span>
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: '#333' }}>
+                        {formFile ? formFile.name : 'Cliquez pour choisir une image'}
+                      </div>
+                      {editing && !formFile && (
+                        <div style={{ fontSize: 11, color: '#999', marginTop: 2 }}>
+                          Laissez vide pour conserver l'image actuelle
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <label style={{ fontSize: 12, fontWeight: 600, color: '#333', marginBottom: 6, display: 'block' }}>Ajustement image</label>
-              <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-                {IMAGE_FITS.map((f) => (
-                  <button
-                    key={f.value}
-                    onClick={() => setFormImageFit(f.value)}
-                    style={{
-                      flex: 1, padding: '8px 12px', borderRadius: 8, border: 'none',
-                      cursor: 'pointer', fontSize: 12, fontWeight: 600,
-                      backgroundColor: formImageFit === f.value ? '#0066FF' : '#F0F0F0',
-                      color: formImageFit === f.value ? '#fff' : '#333',
-                    }}
-                  >
-                    {f.label}
-                  </button>
-                ))}
-              </div>
-
-              <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+              {/* Title + Subtitle */}
+              <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+                <div style={{ flex: 2 }}>
+                  <label style={{ fontSize: 12, fontWeight: 700, color: '#444', marginBottom: 6, display: 'block' }}>Titre</label>
+                  <input
+                    style={{ ...styles.input, marginBottom: 0 }}
+                    placeholder="Titre de la slide"
+                    value={formTitle}
+                    onChange={(e) => setFormTitle(e.target.value)}
+                  />
+                </div>
                 <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: 12, fontWeight: 600, color: '#333', marginBottom: 4, display: 'block' }}>Ordre</label>
+                  <label style={{ fontSize: 12, fontWeight: 700, color: '#444', marginBottom: 6, display: 'block' }}>Ordre</label>
                   <input
                     type="number" min={0}
-                    style={styles.input}
+                    style={{ ...styles.input, marginBottom: 0 }}
                     value={formOrder}
                     onChange={(e) => setFormOrder(parseInt(e.target.value, 10) || 0)}
                   />
                 </div>
-                <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: 12, fontWeight: 600, color: '#333', marginBottom: 4, display: 'block' }}>Actif</label>
-                  <select
-                    style={styles.input}
-                    value={formActive ? 'true' : 'false'}
-                    onChange={(e) => setFormActive(e.target.value === 'true')}
-                  >
-                    <option value="true">Oui</option>
-                    <option value="false">Non</option>
-                  </select>
+              </div>
+
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ fontSize: 12, fontWeight: 700, color: '#444', marginBottom: 6, display: 'block' }}>Sous-titre</label>
+                <input
+                  style={styles.input}
+                  placeholder="Sous-titre (optionnel)"
+                  value={formSubtitle}
+                  onChange={(e) => setFormSubtitle(e.target.value)}
+                />
+              </div>
+
+              {/* Text position */}
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <label style={{ fontSize: 12, fontWeight: 700, color: '#444' }}>Position du texte</label>
+                  <span style={{ fontSize: 11, color: '#999', backgroundColor: '#F0F0F0', padding: '2px 8px', borderRadius: 4 }}>
+                    {TEXT_POSITIONS.find(p => p.value === formTextPosition)?.label || formTextPosition}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  {TEXT_POSITIONS.map((p) => (
+                    <button
+                      key={p.value}
+                      onClick={() => setFormTextPosition(p.value)}
+                      style={{
+                        flex: 1, padding: '10px 4px', borderRadius: 8, border: '2px solid',
+                        cursor: 'pointer', fontSize: 11, fontWeight: 700,
+                        borderColor: formTextPosition === p.value ? '#0066FF' : '#E0E0E0',
+                        backgroundColor: formTextPosition === p.value ? '#E8F1FF' : '#fff',
+                        color: formTextPosition === p.value ? '#0066FF' : '#666',
+                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      <span style={{ fontSize: 16 }}>{p.icon}</span>
+                      <span>{p.label}</span>
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              <div style={styles.actions}>
-                <button style={{ ...styles.btn, ...styles.btnOutline }} onClick={() => setShowForm(false)}>
+              {/* Image fit */}
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ fontSize: 12, fontWeight: 700, color: '#444', marginBottom: 6, display: 'block' }}>Ajustement image</label>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {IMAGE_FITS.map((f) => (
+                    <button
+                      key={f.value}
+                      onClick={() => setFormImageFit(f.value)}
+                      style={{
+                        flex: 1, padding: '10px 12px', borderRadius: 8, border: '2px solid',
+                        cursor: 'pointer', fontSize: 12, fontWeight: 700,
+                        borderColor: formImageFit === f.value ? '#0066FF' : '#E0E0E0',
+                        backgroundColor: formImageFit === f.value ? '#E8F1FF' : '#fff',
+                        color: formImageFit === f.value ? '#0066FF' : '#666',
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Active toggle */}
+              <div style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '12px 16px', borderRadius: 10,
+                backgroundColor: '#FAFAFA', border: '1px solid #EEE',
+                marginBottom: 20,
+              }}>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#333' }}>Slide active</div>
+                  <div style={{ fontSize: 11, color: '#999', marginTop: 2 }}>
+                    Les slides inactives ne sont pas visibles dans l'application
+                  </div>
+                </div>
+                <button
+                  onClick={() => setFormActive(!formActive)}
+                  style={{
+                    width: 44, height: 24, borderRadius: 12, border: 'none',
+                    backgroundColor: formActive ? '#2E7D32' : '#BDBDBD',
+                    cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
+                    flexShrink: 0,
+                  }}
+                >
+                  <div style={{
+                    width: 18, height: 18, borderRadius: 9,
+                    backgroundColor: '#fff', position: 'absolute',
+                    top: 3, left: formActive ? 23 : 3,
+                    transition: 'left 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.2)',
+                  }} />
+                </button>
+              </div>
+
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button
+                  style={{
+                    flex: 1, padding: '12px 20px', borderRadius: 10,
+                    border: '2px solid #E0E0E0', background: '#fff',
+                    cursor: 'pointer', fontWeight: 600, fontSize: 14, color: '#333',
+                  }}
+                  onClick={() => setShowForm(false)}
+                >
                   Annuler
                 </button>
                 <button
-                  style={{ ...styles.btn, ...styles.btnPrimary, opacity: (!formTitle.trim() || submitting) ? 0.6 : 1 }}
+                  style={{
+                    flex: 1, padding: '12px 20px', borderRadius: 10, border: 'none',
+                    background: '#0066FF', color: '#fff',
+                    fontWeight: 600, fontSize: 14, cursor: 'pointer',
+                    opacity: (!formTitle.trim() || submitting) ? 0.6 : 1,
+                  }}
                   onClick={handleSubmit}
                   disabled={!formTitle.trim() || submitting}
                 >
-                  {submitting ? 'Envoi...' : editing ? 'Enregistrer' : 'Ajouter'}
+                  {submitting ? 'Envoi en cours...' : editing ? 'Enregistrer' : 'Ajouter la slide'}
                 </button>
               </div>
             </div>
