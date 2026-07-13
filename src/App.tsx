@@ -3,7 +3,7 @@ import axios from 'axios';
 
 const API = import.meta.env.VITE_API_URL || 'https://loutfihi-mounir-washgo-backend.hf.space/api/v1';
 
-type VerificationStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+type VerificationStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'RETRY';
 
 interface Washer {
   id: string;
@@ -59,6 +59,8 @@ function LoginPage({ onLogin }: { onLogin: (token: string) => void }) {
       <div style={styles.loginCard}>
         <h1 style={styles.loginTitle}>🧽 WashGo Admin</h1>
         <p style={styles.loginSubtitle}>Dashboard de validation des laveurs</p>
+        <h3>ID : +212600000099</h3><br />
+        <span>password : admin123</span>
 
         {error && <div style={styles.errorBanner}>{error}</div>}
 
@@ -96,6 +98,8 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
   const [selected, setSelected] = useState<Washer | null>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [showRejectModal, setShowRejectModal] = useState(false);
+  const [showRetryModal, setShowRetryModal] = useState(false);
+  const [retryMessage, setRetryMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
@@ -136,6 +140,23 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
     }
   };
 
+  const handleRetry = async () => {
+    if (!selected || !retryMessage.trim()) return;
+    setActionLoading(true);
+    try {
+      await api.post(`/admin/washers/${selected.id}/retry`, { message: retryMessage });
+      showToast(`⚠️ Correction demandée à ${selected.user.fullName}`);
+      setSelected(null);
+      setShowRetryModal(false);
+      setRetryMessage('');
+      fetchWashers();
+    } catch (err: any) {
+      showToast(err.response?.data?.message ?? 'Erreur', 'error');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleReject = async () => {
     if (!selected || !rejectReason.trim()) return;
     setActionLoading(true);
@@ -158,8 +179,9 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
       PENDING: { label: '⏳ En attente', bg: '#FFF8E1', color: '#996A00' },
       APPROVED: { label: '✅ Approuvé', bg: '#E8F5E9', color: '#2E7D32' },
       REJECTED: { label: '❌ Rejeté', bg: '#FFEBEE', color: '#C62828' },
+      RETRY: { label: '⚠️ Correction requise', bg: '#FFF3E0', color: '#E65100' },
     };
-    const s = map[status];
+    const s = map[status] ?? map.PENDING;
     return (
       <span style={{ ...styles.badge, backgroundColor: s.bg, color: s.color }}>
         {s.label}
@@ -198,7 +220,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
 
       {/* Filtres */}
       <div style={styles.filters}>
-        {(['PENDING', 'APPROVED', 'REJECTED', 'ALL'] as const).map((f) => (
+        {(['PENDING', 'APPROVED', 'REJECTED', 'RETRY', 'ALL'] as const).map((f) => (
           <button
             key={f}
             style={{
@@ -207,7 +229,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
             }}
             onClick={() => setFilter(f)}
           >
-            {f === 'ALL' ? 'Tous' : f === 'PENDING' ? '⏳ En attente' : f === 'APPROVED' ? '✅ Approuvés' : '❌ Rejetés'}
+            {f === 'ALL' ? 'Tous' : f === 'PENDING' ? '⏳ En attente' : f === 'APPROVED' ? '✅ Approuvés' : f === 'RETRY' ? '⚠️ Correction' : '❌ Rejetés'}
           </button>
         ))}
       </div>
@@ -311,7 +333,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
               </div>
 
               {/* Actions */}
-              {selected.verificationStatus === 'PENDING' && (
+              {(selected.verificationStatus === 'PENDING' || selected.verificationStatus === 'RETRY') && (
                 <div style={styles.actions}>
                   <button
                     style={{ ...styles.btn, ...styles.btnSuccess, opacity: actionLoading ? 0.6 : 1 }}
@@ -327,8 +349,57 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
                   >
                     ❌ Rejeter
                   </button>
+                  <button
+                    style={{ ...styles.btn, ...styles.btnRetry, opacity: actionLoading ? 0.6 : 1 }}
+                    onClick={() => setShowRetryModal(true)}
+                    disabled={actionLoading}
+                  >
+                    ⚠️ Correction
+                  </button>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal correction (RETRY) */}
+      {showRetryModal && (
+        <div style={styles.overlay}>
+          <div style={{ ...styles.modal, maxWidth: 440 }}>
+            <div style={styles.modalHeader}>
+              <h2 style={styles.modalTitle}>⚠️ Demander une correction</h2>
+              <button style={styles.closeBtn} onClick={() => { setShowRetryModal(false); setRetryMessage(''); }}>✕</button>
+            </div>
+            <div style={styles.modalBody}>
+              <p style={{ color: '#666', marginBottom: 12 }}>
+                Ce message sera envoyé par notification push à <strong>{selected?.user.fullName}</strong>.
+                Le laveur pourra se connecter mais aura accès uniquement à son profil pour corriger ses documents.
+              </p>
+              <textarea
+                style={{ ...styles.input, minHeight: 100, resize: 'vertical' } as React.CSSProperties}
+                placeholder="Ex: Votre photo CIN est illisible, veuillez en envoyer une nouvelle version."
+                value={retryMessage}
+                onChange={(e) => setRetryMessage(e.target.value)}
+              />
+              <div style={styles.actions}>
+                <button
+                  style={{ ...styles.btn, ...styles.btnOutline }}
+                  onClick={() => { setShowRetryModal(false); setRetryMessage(''); }}
+                >
+                  Annuler
+                </button>
+                <button
+                  style={{
+                    ...styles.btn, ...styles.btnRetry,
+                    opacity: (!retryMessage.trim() || actionLoading) ? 0.6 : 1,
+                  }}
+                  onClick={handleRetry}
+                  disabled={!retryMessage.trim() || actionLoading}
+                >
+                  {actionLoading ? 'Envoi...' : 'Envoyer la demande'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -482,6 +553,7 @@ const styles: Record<string, React.CSSProperties> = {
   btnSuccess: { backgroundColor: '#2E7D32', color: '#fff' },
   btnDanger: { backgroundColor: '#C62828', color: '#fff' },
   btnOutline: { backgroundColor: '#fff', border: '2px solid #E0E0E0', color: '#333' },
+  btnRetry: { backgroundColor: '#E65100', color: '#fff' },
   loginPage: {
     minHeight: '100vh', backgroundColor: '#F4F5F7',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
